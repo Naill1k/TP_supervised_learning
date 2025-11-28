@@ -1,19 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.metrics import accuracy_score, mean_squared_error, ConfusionMatrixDisplay, confusion_matrix
+from sklearn.inspection import permutation_importance
 import time
-
-
-df_features = pd.read_csv('2-Dataset/alt_acsincome_ca_features_85.csv', sep=',', encoding='utf-8', header=0)
-
-df_labels = pd.read_csv('2-Dataset/alt_acsincome_ca_labels_85.csv', sep=',', encoding='utf-8', header=0)
-
-X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.2)
-
-df = pd.concat([df_features, df_labels], axis=1)
+import os
 
 
 def _pobp_to_continent(code):
@@ -68,24 +61,6 @@ def pre_process_labels(y):
     return y
 
 
-def train_model(X_train, y_train, X_test, y_test):
-    model = RandomForestClassifier()
-
-    t0 = time.perf_counter()
-    model.fit(X_train, y_train.values.ravel())
-    t1 = time.perf_counter()
-
-    preds = model.predict(X_test)
-
-    accuracy = accuracy_score(y_test, preds)
-    print(f"Accuracy: {accuracy}")
-
-    mse = mean_squared_error(y_test, preds)
-    print(f"MSE: {mse}")
-
-    print(f"Training time: {round(t1 - t0, 3)} seconds\n")
-
-
 def plot_simple():
     for col in df.columns:
         data = df[col].value_counts().sort_index()
@@ -121,7 +96,6 @@ def plot_RELP_per_SEX():
     plt.savefig(filename)
     plt.close()
     print(f"Saved {filename}")
-
 
 
 def merge_POBP():
@@ -169,16 +143,105 @@ def merge_POBP():
     print("OCE_True", round(100*nb_OCE_True/len(series_OCE), 2), "%")
     print("Other_True", round(100*nb_Other_True/len(series_Other), 2), "%")
 
- 
+
+
+def train_model_default(classifier, X_train, y_train, X_test, y_test):
+    model = classifier
+
+    t0 = time.perf_counter()
+    model.fit(X_train, y_train.values.ravel())
+    t1 = time.perf_counter()
+
+    preds = model.predict(X_test)
+
+    accuracy = accuracy_score(y_test, preds)
+    mse = mean_squared_error(y_test, preds)
+    matrix = pd.crosstab(y_test.values.ravel(), preds, rownames=['Actual'], colnames=['Predicted'])
+
+    print(f"Accuracy of {classifier.__class__.__name__}: {round(100*accuracy, 2)}% (MSE: {round(mse, 4)})")
+    print(f"Training time: {round(t1 - t0, 3)} seconds")
+    print(matrix)
+    print()
+    return model
+
+
+def evaluate_with_cross_validation(classifier, X, y, n_fold=5):
+    res = cross_validate(classifier, X, y.values.ravel(), cv=n_fold, n_jobs=-1)
+
+    mean_score = res['test_score'].mean()
+    std_score = res['test_score'].std()
+    mean_fit = res['fit_time'].mean()
+
+    print(f"Cross Validation {n_fold}-fold pour {classifier.__class__.__name__}:")
+    print(f"\taccuracy moyenne = {round(100*mean_score,2)}% (+/- {round(100*std_score,2)}%),")
+    print(f"\tfit moyen = {round(mean_fit,3)}s\n")
+
+
+def permutation_feature_importance(model, X_test, y_test, n_repeats=50):
+    result = permutation_importance(model, X_test, y_test, n_repeats=n_repeats, n_jobs=-1)
+
+    importance_df = pd.DataFrame({'Feature': X_test.columns, 'Importance Mean': result.importances_mean, 'Importance Std': result.importances_std})
+    importance_df = importance_df.sort_values(by='Importance Mean', ascending=False)
+    print("Permutation Feature Importance:")
+    print(importance_df)
+    print()
+
+
+    _, ax = plt.subplots(figsize=(10, max(4, 0.35 * len(importance_df))))
+    ax.barh(importance_df['Feature'][::-1], importance_df['Importance Mean'][::-1],
+            xerr=importance_df['Importance Std'][::-1],
+            align='center', color='skyblue', ecolor='grey', capsize=3)
+    
+    ax.set_xlabel('Importance moyenne')
+    ax.set_title('Permutation Feature Importance (moyenne ± écart-type)')
+    plt.tight_layout()
+
+    filename = 'plots/permutation_importance.png'
+    plt.savefig(filename)
+    plt.close()
+    print(f"Saved {filename}")
+
 
 if __name__ == "__main__":
+    df_features = pd.read_csv('2-Dataset/alt_acsincome_ca_features_85.csv', sep=',', encoding='utf-8', header=0)
+    df_labels = pd.read_csv('2-Dataset/alt_acsincome_ca_labels_85.csv', sep=',', encoding='utf-8', header=0)
+
+    X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.2)
+
+    df = pd.concat([df_features, df_labels], axis=1)
+
+    print("Taille du dataset d'entraînement :", X_train.shape[0])
+    print("Taille du dataset de test :", X_test.shape[0])
+
     y_train = pre_process_labels(y_train)
     y_test = pre_process_labels(y_test)
 
-    train_model(X_train, y_train, X_test, y_test)
+    print("Sans pre-processing:\n")
+
+    # # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
+    # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
+
+    # # evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train)
+    # train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
+
+    # # evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train)
+    # train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
+
 
 
     X_train = pre_process_features(X_train)
     X_test = pre_process_features(X_test)
 
-    train_model(X_train, y_train, X_test, y_test)
+
+    print("\nAvec pre-processing:\n")
+
+    # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
+    # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
+
+    # # evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train)
+    # train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
+
+    # evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train)
+    model = train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
+
+    permutation_feature_importance(model, X_test, y_test)
