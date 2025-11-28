@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, Gradien
 from sklearn.metrics import accuracy_score, mean_squared_error, ConfusionMatrixDisplay, confusion_matrix
 from sklearn.inspection import permutation_importance
 from lime.lime_tabular import LimeTabularExplainer
+import shap
 import time
 import os
 
@@ -232,12 +233,72 @@ def visualize_lime_explanations(model, X_train, X_test, y_train, n_instances=5, 
         plt.close()
 
 
+def visualize_shap_explanations(model, X_train, X_test, n_instances=5, max_display=10):
+    rng = np.random.RandomState(42)
+    idxs = rng.choice(range(X_test.shape[0]), size=n_instances, replace=False)
+
+    # Choix de l'explainer : TreeExplainer si possible (rapide pour modèles d'arbres)
+    try:
+        explainer = shap.TreeExplainer(model)
+    except Exception:
+        # fallback : Explainer avec background (peut être plus lent)
+        try:
+            explainer = shap.Explainer(model, X_train)
+        except Exception:
+            print("Impossible d'initialiser un Explainer SHAP pour ce modèle.")
+            return
+
+    # Calcul des valeurs SHAP pour le sous-ensemble sélectionné
+    subset = X_test.iloc[idxs]
+    try:
+        shap_values = explainer(subset)
+    except Exception:
+        shap_values = explainer(subset)  # tentative de secours (certaines versions d'API se comportent différemment)
+
+    # Summary plot (moyenne des importances absolues) pour le sous-ensemble
+    try:
+        plt.figure(figsize=(10, max(4, 0.3 * X_test.shape[1])))
+        shap.plots.bar(shap_values, max_display=max_display, show=False)
+        summary_path = 'plots/shap/summary_bar.png'
+        plt.tight_layout()
+        plt.savefig(summary_path)
+        plt.close()
+        print(f"Saved {summary_path}")
+    except Exception as e:
+        print("Échec création summary SHAP :", e)
+
+    # Waterfall (ou force) plot par instance
+    for k, idx in enumerate(idxs):
+        try:
+            # shap_values[k] est une explication pour l'instance k du subset
+            plt.figure(figsize=(8, 6))
+            # Utiliser waterfall si disponible
+            try:
+                shap.plots.waterfall(shap_values[k], show=False)
+            except Exception:
+                # fallback : bar plot des contributions (valeurs SHAP)
+                vals = shap_values.values[k]
+                feat = X_test.columns
+                df = pd.DataFrame({'feature': feat, 'shap': vals})
+                df = df.reindex(df['shap'].abs().sort_values(ascending=False).index)[:max_display]
+                colors = ['green' if v >= 0 else 'red' for v in df['shap']]
+                plt.barh(df['feature'][::-1], df['shap'][::-1], color=colors[::-1])
+                plt.xlabel('Valeur SHAP')
+                plt.title(f'SHAP contributions idx {idx}')
+            png_path = f'plots/shap/waterfall_idx{idx}.png'
+            plt.tight_layout()
+            plt.savefig(png_path)
+            plt.close()
+            print(f"Saved {png_path}")
+        except Exception as e:
+            print(f"Échec SHAP pour l'instance idx {idx} :", e)
+
 
 if __name__ == "__main__":
     df_features = pd.read_csv('2-Dataset/alt_acsincome_ca_features_85.csv', sep=',', encoding='utf-8', header=0)
     df_labels = pd.read_csv('2-Dataset/alt_acsincome_ca_labels_85.csv', sep=',', encoding='utf-8', header=0)
 
-    X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.2, random_state=42)
 
     df = pd.concat([df_features, df_labels], axis=1)
 
@@ -278,3 +339,6 @@ if __name__ == "__main__":
     # permutation_feature_importance(model, X_test, y_test)
 
     visualize_lime_explanations(model, X_train, X_test, y_train, n_instances=5, num_features=10)
+
+    # Ajout : sauvegarde explications SHAP
+    visualize_shap_explanations(model, X_train, X_test, n_instances=5, max_display=10)
