@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, mean_squared_error, ConfusionMatrixDisplay, confusion_matrix
 from sklearn.inspection import permutation_importance
+from lime.lime_tabular import LimeTabularExplainer
 import time
 import os
 
@@ -186,20 +187,50 @@ def permutation_feature_importance(model, X_test, y_test, n_repeats=50):
     print(importance_df)
     print()
 
-
+    importance_df = importance_df.sort_values(by='Importance Mean', ascending=False)
     _, ax = plt.subplots(figsize=(10, max(4, 0.35 * len(importance_df))))
-    ax.barh(importance_df['Feature'][::-1], importance_df['Importance Mean'][::-1],
-            xerr=importance_df['Importance Std'][::-1],
+    ax.barh(importance_df['Feature'], importance_df['Importance Mean'],
+            xerr=importance_df['Importance Std'],
             align='center', color='skyblue', ecolor='grey', capsize=3)
     
-    ax.set_xlabel('Importance moyenne')
-    ax.set_title('Permutation Feature Importance (moyenne ± écart-type)')
+    ax.set_xlabel('Average Importance')
+    ax.set_title('Permutation Feature Importance')
     plt.tight_layout()
 
     filename = 'plots/permutation_importance.png'
     plt.savefig(filename)
     plt.close()
-    print(f"Saved {filename}")
+
+
+def visualize_lime_explanations(model, X_train, X_test, y_train, n_instances=5, num_features=10):
+    explainer = LimeTabularExplainer(
+        training_data=X_train.values,
+        feature_names=X_train.columns.tolist(),
+        class_names=y_train.values.ravel()
+    )
+
+    rng = np.random.RandomState(42)
+    examples = rng.choice(range(X_test.shape[0]), size=n_instances, replace=False)
+
+    for i in examples:
+        instance = X_test.iloc[i].values
+        pred = model.predict([instance])[0]
+        explanation = explainer.explain_instance(instance, model.predict_proba, num_features=num_features).as_list()
+
+        df_explanation = pd.DataFrame({'feature': [t[0] for t in explanation], 'weight': [t[1] for t in explanation]})
+
+        _, ax = plt.subplots(figsize=(8, max(3, 0.4 * len(df_explanation))))
+        colors = ['green' if v > 0 else 'red' for v in df_explanation['weight']]
+
+        ax.barh(df_explanation['feature'], df_explanation['weight'], color=colors)
+        ax.set_title(f'LIME exp. idx {i}  —  pred: {pred}')
+        ax.set_xlabel('Contribution au score de la classe')
+        plt.tight_layout()
+
+        png_path = f'plots/lime/explanation_idx{i}.png'
+        plt.savefig(png_path)
+        plt.close()
+
 
 
 if __name__ == "__main__":
@@ -210,13 +241,13 @@ if __name__ == "__main__":
 
     df = pd.concat([df_features, df_labels], axis=1)
 
-    print("Taille du dataset d'entraînement :", X_train.shape[0])
-    print("Taille du dataset de test :", X_test.shape[0])
+    print("Training dataset size :", X_train.shape[0])
+    print("Test dataset size :", X_test.shape[0])
 
     y_train = pre_process_labels(y_train)
     y_test = pre_process_labels(y_test)
 
-    print("Sans pre-processing:\n")
+    # print("Before pre-processing:\n")
 
     # # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
     # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
@@ -233,7 +264,7 @@ if __name__ == "__main__":
     X_test = pre_process_features(X_test)
 
 
-    print("\nAvec pre-processing:\n")
+    # print("\nAfter pre-processing:\n")
 
     # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
     # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
@@ -244,4 +275,6 @@ if __name__ == "__main__":
     # evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train)
     model = train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
 
-    permutation_feature_importance(model, X_test, y_test)
+    # permutation_feature_importance(model, X_test, y_test)
+
+    visualize_lime_explanations(model, X_train, X_test, y_train, n_instances=5, num_features=10)
