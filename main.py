@@ -9,6 +9,7 @@ from lime.lime_tabular import LimeTabularExplainer
 import shap
 import time
 import os
+import warnings
 
 
 def _pobp_to_continent(code):
@@ -161,7 +162,7 @@ def train_model_default(classifier, X_train, y_train, X_test, y_test):
     matrix = pd.crosstab(y_test.values.ravel(), preds, rownames=['Actual'], colnames=['Predicted'])
 
     print(f"Accuracy of {classifier.__class__.__name__}: {round(100*accuracy, 2)}% (MSE: {round(mse, 4)})")
-    print(f"Training time: {round(t1 - t0, 3)} seconds")
+    print(f"Training time: {round(t1 - t0, 3)} seconds\n")
     print(matrix)
     print()
     return model
@@ -182,13 +183,16 @@ def evaluate_with_cross_validation(classifier, X, y, n_fold=5):
 def permutation_feature_importance(model, X_test, y_test, n_repeats=50):
     result = permutation_importance(model, X_test, y_test, n_repeats=n_repeats, n_jobs=-1)
 
-    importance_df = pd.DataFrame({'Feature': X_test.columns, 'Importance Mean': result.importances_mean, 'Importance Std': result.importances_std})
+    importance_df = pd.DataFrame({'Feature': X_test.columns,
+                                  'Importance Mean': result.importances_mean,
+                                  'Importance Std': result.importances_std
+                                  })
     importance_df = importance_df.sort_values(by='Importance Mean', ascending=False)
-    print("Permutation Feature Importance:")
+    print("\nPermutation Feature Importance:\n")
     print(importance_df)
     print()
 
-    importance_df = importance_df.sort_values(by='Importance Mean', ascending=False)
+    importance_df = importance_df.sort_values(by='Importance Mean', ascending=True)
     _, ax = plt.subplots(figsize=(10, max(4, 0.35 * len(importance_df))))
     ax.barh(importance_df['Feature'], importance_df['Importance Mean'],
             xerr=importance_df['Importance Std'],
@@ -201,97 +205,72 @@ def permutation_feature_importance(model, X_test, y_test, n_repeats=50):
     filename = 'plots/permutation_importance.png'
     plt.savefig(filename)
     plt.close()
+    print(f'Saved as "{filename}"\n')
 
 
-def visualize_lime_explanations(model, X_train, X_test, y_train, n_instances=5, num_features=10):
+def visualize_lime_explanations(model, X_train, X_test, y_train, examples):
     explainer = LimeTabularExplainer(
         training_data=X_train.values,
         feature_names=X_train.columns.tolist(),
         class_names=y_train.values.ravel()
     )
 
-    rng = np.random.RandomState(42)
-    examples = rng.choice(range(X_test.shape[0]), size=n_instances, replace=False)
-
+    print('\nLIME explanation:\n')
     for i in examples:
         instance = X_test.iloc[i].values
         pred = model.predict([instance])[0]
-        explanation = explainer.explain_instance(instance, model.predict_proba, num_features=num_features).as_list()
 
+        explanation = explainer.explain_instance(instance, model.predict_proba).as_list()
+ 
         df_explanation = pd.DataFrame({'feature': [t[0] for t in explanation], 'weight': [t[1] for t in explanation]})
 
         _, ax = plt.subplots(figsize=(8, max(3, 0.4 * len(df_explanation))))
         colors = ['green' if v > 0 else 'red' for v in df_explanation['weight']]
 
         ax.barh(df_explanation['feature'], df_explanation['weight'], color=colors)
-        ax.set_title(f'LIME exp. idx {i}  —  pred: {pred}')
+        ax.set_title(f'LIME explanation prediction "{bool(pred)}" for example {i}')
         ax.set_xlabel('Contribution au score de la classe')
         plt.tight_layout()
 
         png_path = f'plots/lime/explanation_idx{i}.png'
         plt.savefig(png_path)
         plt.close()
+        print(f'Saved as "{png_path}"')
+
+    print()
 
 
-def visualize_shap_explanations(model, X_train, X_test, n_instances=5, max_display=10):
-    rng = np.random.RandomState(42)
-    idxs = rng.choice(range(X_test.shape[0]), size=n_instances, replace=False)
+def visualize_shap_explanations(model, X_train, X_test, examples):
+    explainer = shap.TreeExplainer(model)
 
-    # Choix de l'explainer : TreeExplainer si possible (rapide pour modèles d'arbres)
-    try:
-        explainer = shap.TreeExplainer(model)
-    except Exception:
-        # fallback : Explainer avec background (peut être plus lent)
-        try:
-            explainer = shap.Explainer(model, X_train)
-        except Exception:
-            print("Impossible d'initialiser un Explainer SHAP pour ce modèle.")
-            return
+    subset = X_test.iloc[examples]
+    shap_values = explainer(subset)
 
-    # Calcul des valeurs SHAP pour le sous-ensemble sélectionné
-    subset = X_test.iloc[idxs]
-    try:
-        shap_values = explainer(subset)
-    except Exception:
-        shap_values = explainer(subset)  # tentative de secours (certaines versions d'API se comportent différemment)
+    print('\nSHAP explanation:\n')
 
-    # Summary plot (moyenne des importances absolues) pour le sous-ensemble
-    try:
-        plt.figure(figsize=(10, max(4, 0.3 * X_test.shape[1])))
-        shap.plots.bar(shap_values, max_display=max_display, show=False)
-        summary_path = 'plots/shap/summary_bar.png'
+    # Summary plot 
+    plt.figure(figsize=(10, max(4, 0.3 * X_test.shape[1])))
+    shap.plots.bar(shap_values, show=False)
+    summary_path = 'plots/shap/summary_bar.png'
+    plt.tight_layout()
+    plt.savefig(summary_path)
+    plt.close()
+    print(f'Saved summary as "{summary_path}"')
+
+
+    # Waterfall plot par instance
+    for k, idx in enumerate(examples):
+        plt.figure(figsize=(8, 6))
+        shap.plots.waterfall(shap_values[k], show=False)
+
+        png_path = f'plots/shap/waterfall_idx{idx}.png'
         plt.tight_layout()
-        plt.savefig(summary_path)
+        plt.savefig(png_path)
         plt.close()
-        print(f"Saved {summary_path}")
-    except Exception as e:
-        print("Échec création summary SHAP :", e)
+        print(f'Saved as "{png_path}"')
 
-    # Waterfall (ou force) plot par instance
-    for k, idx in enumerate(idxs):
-        try:
-            # shap_values[k] est une explication pour l'instance k du subset
-            plt.figure(figsize=(8, 6))
-            # Utiliser waterfall si disponible
-            try:
-                shap.plots.waterfall(shap_values[k], show=False)
-            except Exception:
-                # fallback : bar plot des contributions (valeurs SHAP)
-                vals = shap_values.values[k]
-                feat = X_test.columns
-                df = pd.DataFrame({'feature': feat, 'shap': vals})
-                df = df.reindex(df['shap'].abs().sort_values(ascending=False).index)[:max_display]
-                colors = ['green' if v >= 0 else 'red' for v in df['shap']]
-                plt.barh(df['feature'][::-1], df['shap'][::-1], color=colors[::-1])
-                plt.xlabel('Valeur SHAP')
-                plt.title(f'SHAP contributions idx {idx}')
-            png_path = f'plots/shap/waterfall_idx{idx}.png'
-            plt.tight_layout()
-            plt.savefig(png_path)
-            plt.close()
-            print(f"Saved {png_path}")
-        except Exception as e:
-            print(f"Échec SHAP pour l'instance idx {idx} :", e)
+    print()
+
 
 
 if __name__ == "__main__":
@@ -302,13 +281,13 @@ if __name__ == "__main__":
 
     df = pd.concat([df_features, df_labels], axis=1)
 
-    print("Training dataset size :", X_train.shape[0])
+    print("\nTraining dataset size :", X_train.shape[0])
     print("Test dataset size :", X_test.shape[0])
+    print()
+
 
     y_train = pre_process_labels(y_train)
     y_test = pre_process_labels(y_test)
-
-    # print("Before pre-processing:\n")
 
     # # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
     # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
@@ -320,25 +299,29 @@ if __name__ == "__main__":
     # train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
 
 
-
+    print("\nWith pre-processing:\n")
     X_train = pre_process_features(X_train)
     X_test = pre_process_features(X_test)
 
-
-    # print("\nAfter pre-processing:\n")
-
     # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
-    # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
+    # model = train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
 
     # # evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train)
-    # train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
+    model = train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
 
     # evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train)
-    model = train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
+    # model = train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
 
-    # permutation_feature_importance(model, X_test, y_test)
 
-    visualize_lime_explanations(model, X_train, X_test, y_train, n_instances=5, num_features=10)
+    # Explanations
 
-    # Ajout : sauvegarde explications SHAP
-    visualize_shap_explanations(model, X_train, X_test, n_instances=5, max_display=10)
+    permutation_feature_importance(model, X_test, y_test)
+
+    # Generate random examples to explain
+    rng = np.random.RandomState(42)  # To get reproducible results
+    examples = rng.choice(range(X_test.shape[0]), size=10, replace=False)
+
+    warnings.filterwarnings("ignore", message="X does not have valid feature names")
+
+    visualize_lime_explanations(model, X_train, X_test, y_train, examples)
+    visualize_shap_explanations(model, X_train, X_test, examples)  # Only works with GradientBoosting
