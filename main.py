@@ -168,16 +168,42 @@ def train_model_default(classifier, X_train, y_train, X_test, y_test):
     return model
 
 
-def evaluate_with_cross_validation(classifier, X, y, n_fold=5):
-    res = cross_validate(classifier, X, y.values.ravel(), cv=n_fold, n_jobs=-1)
+def evaluate_with_cross_validation(classifier, X_train, y_train, X_test, y_test, n_fold=5):
+    t0 = time.perf_counter()
+    res = cross_validate(classifier, X_train, y_train.values.ravel(), cv=n_fold, return_estimator=True, n_jobs=-1)
+    t1 = time.perf_counter()
 
     mean_score = res['test_score'].mean()
     std_score = res['test_score'].std()
     mean_fit = res['fit_time'].mean()
+    estimator = res['estimator'][np.argmax(res['test_score'])]  # Best estimator
 
-    print(f"Cross Validation {n_fold}-fold pour {classifier.__class__.__name__}:")
-    print(f"\taccuracy moyenne = {round(100*mean_score,2)}% (+/- {round(100*std_score,2)}%),")
-    print(f"\tfit moyen = {round(mean_fit,3)}s\n")
+    print(f"Cross Validation {n_fold}-fold pour {classifier.__class__.__name__} en {round(t1 - t0, 3)} seconds:")
+    
+    # Train set
+    preds = estimator.predict(X_train)
+
+    accuracy = accuracy_score(y_train, preds)
+    mse = mean_squared_error(y_train, preds)
+    matrix = pd.crosstab(y_train.values.ravel(), preds, rownames=['Actual'], colnames=['Predicted'])
+
+    print(f"Accuracy of {estimator.__class__.__name__} on train set: {round(100*accuracy, 2)}% (MSE: {round(mse, 4)})")
+    print(matrix)
+    ConfusionMatrixDisplay(confusion_matrix=matrix, display_labels=classifier.classes_).plot()
+    print()
+    
+
+    # Test set
+    preds = estimator.predict(X_test)
+
+    accuracy = accuracy_score(y_test, preds)
+    mse = mean_squared_error(y_test, preds)
+    matrix = pd.crosstab(y_test.values.ravel(), preds, rownames=['Actual'], colnames=['Predicted'])
+
+    print(f"Accuracy of {estimator.__class__.__name__} on test set: {round(100*accuracy, 2)}% (MSE: {round(mse, 4)})")
+    print(matrix)
+    ConfusionMatrixDisplay(confusion_matrix=matrix, display_labels=classifier.classes_).plot()
+    print()
 
 
 def permutation_feature_importance(model, X_test, y_test, n_repeats=50):
@@ -303,15 +329,16 @@ if __name__ == "__main__":
     X_train = pre_process_features(X_train)
     X_test = pre_process_features(X_test)
 
-    # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
+    evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train, X_test, y_test)
     # model = train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
 
-    # # evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train)
-    model = train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
+    evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
+    # model = train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
 
-    # evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train)
+    evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
     # model = train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
 
+    exit()
 
     # Explanations
 
