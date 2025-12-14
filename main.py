@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.model_selection import train_test_split, cross_validate, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, mean_squared_error, ConfusionMatrixDisplay, confusion_matrix
 from sklearn.inspection import permutation_importance
@@ -298,6 +298,18 @@ def visualize_shap_explanations(model, X_train, X_test, examples):
     print()
 
 
+def explain(model, n_examples, X_train, X_test, y_train, y_test):
+    permutation_feature_importance(model, X_test, y_test)
+
+    # Generate random examples to explain
+    rng = np.random.RandomState(42)  # To get reproducible results
+    examples = rng.choice(range(X_test.shape[0]), size=10, replace=False)
+
+    warnings.filterwarnings("ignore", message="X does not have valid feature names")
+
+    visualize_lime_explanations(model, X_train, X_test, y_train, examples)
+    visualize_shap_explanations(model, X_train, X_test, examples)  # Only works with GradientBoosting
+
 
 if __name__ == "__main__":
     df_features = pd.read_csv('2-Dataset/alt_acsincome_ca_features_85.csv', sep=',', encoding='utf-8', header=0)
@@ -311,44 +323,26 @@ if __name__ == "__main__":
     print("Test dataset size :", X_test.shape[0])
     print()
 
+    classifiers = [RandomForestClassifier(), GradientBoostingClassifier(), AdaBoostClassifier()]
 
     y_train = pre_process_labels(y_train)
     y_test = pre_process_labels(y_test)
 
-    # # evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train)
-    # train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
-
-    # # evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train)
-    # train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
-
-    # # evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train)
-    # train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
+    # for classifier in classifiers:
+    #     evaluate_with_cross_validation(classifier, X_train, y_train, X_test, y_test)
+    #     model = train_model_default(classifier, X_train, y_train, X_test, y_test)
 
 
     print("\nWith pre-processing:\n")
     X_train = pre_process_features(X_train)
     X_test = pre_process_features(X_test)
 
-    evaluate_with_cross_validation(RandomForestClassifier(), X_train, y_train, X_test, y_test)
-    # model = train_model_default(RandomForestClassifier(), X_train, y_train, X_test, y_test)
 
-    evaluate_with_cross_validation(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
-    # model = train_model_default(GradientBoostingClassifier(), X_train, y_train, X_test, y_test)
+    for classifier in classifiers:
+        evaluate_with_cross_validation(classifier, X_train, y_train, X_test, y_test)
+        # model = train_model_default(classifier, X_train, y_train, X_test, y_test)
 
-    evaluate_with_cross_validation(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
-    # model = train_model_default(AdaBoostClassifier(), X_train, y_train, X_test, y_test)
 
-    exit()
+    # explain(model, 10, X_train, X_test, y_train, y_test)
 
-    # Explanations
-
-    permutation_feature_importance(model, X_test, y_test)
-
-    # Generate random examples to explain
-    rng = np.random.RandomState(42)  # To get reproducible results
-    examples = rng.choice(range(X_test.shape[0]), size=10, replace=False)
-
-    warnings.filterwarnings("ignore", message="X does not have valid feature names")
-
-    visualize_lime_explanations(model, X_train, X_test, y_train, examples)
-    visualize_shap_explanations(model, X_train, X_test, examples)  # Only works with GradientBoosting
+    
