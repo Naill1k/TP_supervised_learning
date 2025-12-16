@@ -352,7 +352,7 @@ if __name__ == "__main__":
     df_features = pd.read_csv('2-Dataset/alt_acsincome_ca_features_85.csv', sep=',', encoding='utf-8', header=0)
     df_labels = pd.read_csv('2-Dataset/alt_acsincome_ca_labels_85.csv', sep=',', encoding='utf-8', header=0)
 
-    X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.9, random_state=42)
 
     df = pd.concat([df_features, df_labels], axis=1)
 
@@ -408,7 +408,11 @@ if __name__ == "__main__":
 
     # evaluate_with_gridsearch(RandomForestClassifier(), param_grid_rfc, X_train, y_train, X_test, y_test)
     # evaluate_with_gridsearch(AdaBoostClassifier(), param_grid_ada, X_train, y_train, X_test, y_test)
-    evaluate_with_gridsearch(GradientBoostingClassifier(), param_grid_gx, X_train, y_train, X_test, y_test)
+    # evaluate_with_gridsearch(GradientBoostingClassifier(), param_grid_gx, X_train, y_train, X_test, y_test)
+
+    evaluate_with_cross_validation(RandomForestClassifier(max_depth=14, min_samples_split=11, n_estimators=150), X_train, y_train, X_test, y_test)
+    evaluate_with_cross_validation(AdaBoostClassifier(estimator=DecisionTreeClassifier(max_depth=3), n_estimators=800, learning_rate=0.5), X_train, y_train, X_test, y_test)
+    evaluate_with_cross_validation(GradientBoostingClassifier(n_estimators=400, learning_rate=0.1, max_depth=4, min_samples_split=2, subsample=0.6), X_train, y_train, X_test, y_test)
 
     # explain(model, 10, X_train, X_test, y_train, y_test)
 
