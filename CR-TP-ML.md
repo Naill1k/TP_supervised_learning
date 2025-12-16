@@ -20,7 +20,8 @@ Les colonnes du dataset sont :
 
 Lors du pré-traitement, nous avons décidé de retirer la colonne OCCP correspondant aux codes métiers en raison du trop grand nombre de valeurs différentes.
 
-Nous avons aussi modifé la colonne POBP correspondant au pays de naissance en regroupant par continent. Les valeurs de la colonne POBP correspondent maintenant, par ordre croissant, à l'Europe, l'Asie, l'Amérique du Nord (hors Etats-Unis), les Etats-Unis, l'Amérique latine, l'Afrique, l'Océanie et les pays restants.
+Nous avons aussi modifé la colonne POBP correspondant au pays de naissance en regroupant par continent. Les valeurs de la colonne POBP correspondent maintenant, par ordre croissant, à l'Europe, l'Asie, l'Amérique du Nord (hors Etats-Unis), les Etats-Unis, l'Amérique latine, l'Afrique, l'Océanie et les pays restants.<br>
+Il aurait été intéressant de séparer l'Europe en quatre régions (Nord, Sud, Est, Ouest), car beaucoup d'information est perdue en regroupant tous les pays d'Europe ensemble.
 
 Enfin, nous avons simplifié la colonne RELP correspondant à la relation avec la personne de référence du ménage en regroupant les enfants biologiques, adoptés, les beaux enfants, les petits enfants et ceux issus de famille d'accueil en une seule catégorie (2).
 
@@ -40,53 +41,58 @@ Ces 9 features sont utilisées pour prédire si le label PINCP (correspondant au
 |----------------------|---------------|-------------|-------------|
 |  Temps calcul        |     13.97s    |    7.35s    |    3.24s    |
 |----------------------|---------------|-------------|-------------|
-|  Matrice confusion   |   72713  5805 | 65305 13213 | 65587 12931 |
+|  Matrice confusion   |  72713   5805 | 65305 13213 | 65587 12931 |
 |                      |   5226  49308 | 13457 41077 | 14713 39821 |
 |----------------------|---------------|-------------|-------------|
 
-|  Evaluation en test  | Random Forest |   XGBoost  |  Adaboost  |
-|----------------------|---------------|------------|------------|
-|  Accuracy            |     77.71%    |   79.71%   |   79.23%   |
-|----------------------|---------------|------------|------------|
-|  Matrice confusion   |   16053  3541 | 16280 3314 | 16388 3206 |
-|                      |   3874  9795  | 3435 10234 | 3703 9966  |
-|----------------------|---------------|------------|------------|
+|  Evaluation en test  | Random Forest |   XGBoost   |   Adaboost  |
+|----------------------|---------------|-------------|-------------|
+|  Accuracy            |     77.71%    |    79.71%   |    79.23%   |
+|----------------------|---------------|-------------|-------------|
+|  Matrice confusion   |  16053  3541  | 16280  3314 | 16388  3206 |
+|                      |   3874  9795  |  3435 10234 |  3703  9966 |
+|----------------------|---------------|-------------|-------------|
 
-* Commentaires et Analyse : c bizarre !
+Nous pouvons constater que Random Forest a une très bonne performance en entrainement, mais une performance plus faible en test, ce qui montre un sur-apprentissage des données d'entraînement. En revanche, Gradient Boosting et Adaboost ont des précisions similaires en entrainement et en test, ce qui suggère que ces modèles parviennent à éviter ce problème et améliorent légèrement la précision sur le jeu de test. <br>
+Random Forest est aussi le modèle le plus lent à entrainer, suivi de XGBoost puis d'Adaboost, qui est le plus rapide. <br>
+Par ailleurs, il y a environ le même nombre de faux positifs et de faux négatifs pour chacun des trois modèles.
 
 
-## Expérimentation 2 : Comparaison Modèles ML par défaut
+## Expérimentation 2 : Optimisation des hyperparamètres
 * Jeux de données utilisé :  
-  * Taille ensemble d'entrainement (nb lignes et nb colonnes) : 133052 lignes et 9 colonnes
-  * Taille ensemble de test (nb lignes et nb colonnes) : 33263 lignes et 9 colonnes
+  * Taille ensemble d'entrainement : **133052** lignes et **9** colonnes
+  * Taille ensemble de test : **33263** lignes et **9** colonnes
 
 ### Random Forest (RF)
 * Processus d'entrainement : 
-  * Recherche des hyperparamètres
-   * Listes des hyperparamètres testés et valeurs : 
-    * n_estimators: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
-    * max_depth: [None, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-    * min_samples_split: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  * Nombre de plis pour la validation croisée : 5
-  * Nombre total d'entrainement : 9075
+  * Listes des hyperparamètres testés et valeurs : 
+    * n_estimators: `[10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]`,
+    * max_depth: `[None, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]`,
+    * min_samples_split: `[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]`
+  * Nombre de plis pour la validation croisée : **5**
+  * Nombre total d'entrainement : **9075**
+
 * Résultats : 
   * Meilleurs hyperparamètres : 
-    * max_depth: 14
-    * min_samples_split: 11
-    * n-estimators: 150
+    * max_depth: `14`
+    * min_samples_split: `11`
+    * n_estimators: `150`
+    
   * Performances en entraintement : 
-   * Accuracy : 83,04%
-   * Temps de calcul : 4578,441
-   * Matrice de Confusion : 
-    67009  11509
-    11058  43476
+    * Accuracy : **83,04%**
+    * Temps de calcul : **4578s (1h16)**
+    * Matrice de Confusion : <br>
+    `67009  11509` <br>
+    `11058  43476`
+
   * Performance en test : 
-   * Accuracy : 80,0%
-   * Temps de calcul : 4578,441
-   * Matrice de Confusion : 
-    16271  3323
-    3329  10340
-  * Commentaires / analyses (par rapport résultat expe 1)
+    * Accuracy : **80,0%**
+    * Temps de calcul : **4578s (1h16)**
+    * Matrice de Confusion : <br>
+    `16271  3323` <br>
+    ` 3329  10340`
+
+  Nous avons testé avec GridSearch un très grand nombre de combinaisons d'hyperparamètres (**9075** fit réalisés en comptant la cross validation), ne sachant pas de quelle manière restreindre les plages de valeurs des hyperparamètres. Cette recherche a nécessité un temps de calcul conséquent (environ **1h16**) et n'a permi d'améliorer que légèrementles la précision, passant de **77,71%** à **80,0%**.
 
 ### ADABOOST 
 * Processus d'entrainement : 
