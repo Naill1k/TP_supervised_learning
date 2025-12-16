@@ -92,18 +92,33 @@ Ces 9 features sont utilisées pour prédire si le label PINCP (correspondant au
 * Processus d'entrainement : 
   * Recherche des hyperparamètres
    * Listes des hyperparamètres testés et valeurs : 
-  * Nombre de plis pour la validation croisée : 
-  * Nombre total d'entrainement : 
+    * estimator: [
+            DecisionTreeClassifier(max_depth=1),
+            DecisionTreeClassifier(max_depth=2),
+            DecisionTreeClassifier(max_depth=3),
+            DecisionTreeClassifier(max_depth=4),
+        ]
+    * n_estimators: [50, 100, 200, 400, 800]
+    * learning_rate: [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
+  * Nombre de plis pour la validation croisée : 5
+  * Nombre total d'entrainement : 600
 * Résultats : 
   * Meilleurs hyperparamètres : 
+    * estimator: DecisionTreeClassifier(max_depth=3)
+    * n_estimators: 800
+    * learning_rate: 0.5
   * Performances en entraintement : 
-   * Accuracy : 
-   * Temps de calcul : 
+   * Accuracy : 80.12%
+   * Temps de calcul : 4566s (1h16)
    * Matrice de Confusion : 
+    65285  13233
+    13215  41319
   * Performance en test : 
-   * Accuracy : 
-   * Temps de calcul : 
+   * Accuracy : 79.84%
+   * Temps de calcul : 4566s (1h16)
    * Matrice de Confusion : 
+    16270  3324
+    3381  10288
   * Commentaires / analyses (par rapport résultat expe 1)
 
 
@@ -111,18 +126,32 @@ Ces 9 features sont utilisées pour prédire si le label PINCP (correspondant au
 * Processus d'entrainement : 
   * Recherche des hyperparamètres
    * Listes des hyperparamètres testés et valeurs : 
-  * Nombre de plis pour la validation croisée : 
-  * Nombre total d'entrainement : 
+    * n_estimators: [100, 200, 400]
+    * learning_rate: [0.01, 0.05, 0.1]
+    * max_depth: [2, 3, 4]
+    * min_samples_split: [2, 5, 10]
+    * subsample: [0.6, 0.8, 1.0]
+  * Nombre de plis pour la validation croisée : 5
+  * Nombre total d'entrainement : 1215
 * Résultats : 
   * Meilleurs hyperparamètres : 
+    * n_estimators: 400
+    * learning_rate: 0.1
+    * max_depth: 4
+    * min_samples_split: 2
+    * subsample: 0.6
   * Performances en entraintement : 
-   * Accuracy : 
-   * Temps de calcul : 
+   * Accuracy : 80.89%
+   * Temps de calcul : 1849s (30min)
    * Matrice de Confusion : 
+    65546  12972
+    12453  42081
   * Performance en test : 
-   * Accuracy : 
-   * Temps de calcul : 
+   * Accuracy : 80.06%
+   * Temps de calcul : 1849s (30min)
    * Matrice de Confusion : 
+    16215  3379
+    3254  10415
   * Commentaires / analyses (par rapport résultat expe 1)
 
 ## Expérimentation 3 : Comparaison des "meilleurs modèles

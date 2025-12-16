@@ -11,6 +11,8 @@ import time
 import os
 import warnings
 
+from sklearn.tree import DecisionTreeClassifier
+
 
 def pobp_to_continent(code):
     c = int(code)
@@ -204,16 +206,11 @@ def evaluate_with_cross_validation(classifier, X_train, y_train, X_test, y_test,
     print()
 
 
-def evaluate_with_gridsearch(classifier, X_train, y_train, X_test, y_test, n_fold=5):
-    
+def evaluate_with_gridsearch(classifier, param_grid, X_train, y_train, X_test, y_test, n_fold=5):
+
     warnings.filterwarnings("ignore", message="A column-vector y was passed when a 1d array was expected.")
 
     t0 = time.perf_counter()
-    param_grid = {
-        "n_estimators": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150],
-        "max_depth": [None, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "min_samples_split": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    }
     estimator = GridSearchCV(classifier, param_grid=param_grid, cv=n_fold, n_jobs=-1, verbose=3)
     estimator.fit(X_train, y_train)
     t1 = time.perf_counter()
@@ -389,7 +386,29 @@ if __name__ == "__main__":
         "max_depth": [10, 12, 14, 16, 18, 20],
         "min_samples_split": [8, 9, 10, 11, 12, 13, 14, 15]
     }
-    evaluate_with_gridsearch(RandomForestClassifier(), param_grid_rfc, X_train, y_train, X_test, y_test)
+    param_grid_ada = {
+        "estimator": [
+            DecisionTreeClassifier(max_depth=1),
+            DecisionTreeClassifier(max_depth=2),
+            DecisionTreeClassifier(max_depth=3),
+            DecisionTreeClassifier(max_depth=4),
+        ],
+
+        "n_estimators": [50, 100, 200, 400, 800],
+
+        "learning_rate": [0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
+    }
+    param_grid_gx = {
+        "n_estimators": [100, 200, 400],
+        "learning_rate": [0.01, 0.05, 0.1],
+        "max_depth": [2, 3, 4],
+        "min_samples_split": [2, 5, 10],
+        "subsample": [0.6, 0.8, 1.0]
+    }
+
+    # evaluate_with_gridsearch(RandomForestClassifier(), param_grid_rfc, X_train, y_train, X_test, y_test)
+    # evaluate_with_gridsearch(AdaBoostClassifier(), param_grid_ada, X_train, y_train, X_test, y_test)
+    evaluate_with_gridsearch(GradientBoostingClassifier(), param_grid_gx, X_train, y_train, X_test, y_test)
 
     # explain(model, 10, X_train, X_test, y_train, y_test)
 
