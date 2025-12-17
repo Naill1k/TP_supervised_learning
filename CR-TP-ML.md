@@ -304,23 +304,26 @@ Les features WKHP et SCHL, AGEP et RELP sont les plus importantes, tandis que le
 ## Explicabilité : contrefactuelle
 Résultats / Commentaires / Analyses : 
 
-  On fait un predict sur cet exemple :
-    example_row['SCHL'] = 3
-    example_row['AGEP'] = 25
-    example_row['WKHP'] = 40
-    example_row['COW'] = 2
-    example_row['POBP'] = 4
-    example_row['RELP'] = 12
-    example_row['MAR'] = 5
-    example_row['SEX'] = 2
-    example_row['RAC1P'] = 6
+  On fait un predict sur cet exemple : <br>
+  | Feature |    Value   |
+  |---------|------------|
+  | WKHP    |     40     |
+  | SCHL    |     3      |
+  | AGEP    |     25     |
+  | RELP    |     12     |
+  | SEX     |     2      |
+  | POBP    |     4      |
+  | MAR     |     5      |
+  | COW     |     2      |
+  | RAC1P   |     6      |
+  |         |            |
 
   On obtient les probabilités suivantes :
 
     Prédiction: 0
     Probabilités: [0.93832707 0.06167293]
 
-  On change la valeur du champ SCHL de 3 à 24 (niveau d'éducation plus élevé) pour essayer de changer la prédiction.<br>
+  On change la valeur du champ **SCHL** de **3** à **24** (niveau d'éducation plus élevé) pour essayer de changer la prédiction.<br>
   On obtient les probabilités suivantes :
 
     Prédiction: 0
@@ -329,7 +332,7 @@ Résultats / Commentaires / Analyses :
   Malgré l'augmentation du niveau d'éducation, la prédiction reste inchangée (revenu inférieur à 50 000$). Cela suggère que l'impact d'un seul facteur peut ne pas être suffisant pour modifier la prédiction du modèle. D'autres facteurs, tels que l'âge, le nombre d'heures travaillées par semaine, et la relation familiale, peuvent également jouer un rôle crucial dans la détermination du revenu annuel. <br>
 
   Pour obtenir une prédiction différente, il serait nécessaire de modifier plusieurs facteurs simultanément, par exemple en augmentant le niveau d'éducation et l'age.<br>
-  On passe donc l'age de 25 à 50 ans en plus de SCHL de 3 à 24.<br>
+  On passe donc **AGEP** de **25** à **50** ans en plus de **SCHL** de **3** à **24**.<br>
   On obtient les probabilités suivantes :
 
     Prédiction: 1
