@@ -190,7 +190,7 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
 |----------------------|---------------|-------------|-------------|
 
 * Commentaires et Analyse : 
-  On remarque que les 3 modèles ont un niveau d'accuracy très proche sur le jeu de test (seulement quelques dixièmes de pourcentage d'écart). On a une légère amélioration en comparaison au modèle entrainés avec les paramètres par défaut. Cependant le temps d'exécution nécessaire pour obtenir les hyperparamètres plus pertinent est très élevé.
+  On remarque que les 3 modèles ont un niveau d'accuracy très proche sur le jeu de test (seulement quelques dixièmes de pourcentage d'écart). On a une légère amélioration en comparaison au modèle entrainés avec les paramètres par défaut. Cependant le temps d'exécution nécessaire pour obtenir les hyperparamètres plus pertinent est très élevé. <br>
   On peut considérer dans notre cas que le Gradiet Boosting est le modèle avec la meilleure accuracy mais aussi celui qui a nécessité le moins de temps de calcul. On peut considérer que le temps de calcul pour obtenir le meilleur modèle de Random Forest n'est pas tout a fait pertienent à comparer aux 2 autres car on a fait beaucoup plus d'entrainements cependant le résultat en terme d'accuracy est du même ordre. De plus AdaBoost **600 fit** a été bien plus long à exécuter que le Gradient Boosting **1215** alors que l'on a doublé les nombre d'entrainements.
 
 ## Expérimentation 4 : inférence sur un autre jeu de données (optionnel)
@@ -211,8 +211,11 @@ Résultats / Commentaires / Analyses :
 |   Accuracy    | test    |  80.11%   |  80.05%   |  80.19%   |  80.28%   |  80.21%   |  80.19%   |  79.99%   |  79.75%   |  79.32%   |
 |               |         |           |           |           |           |           |           |           |           |           |
 
+Comme attendu, moins il y a de données d'entrainement, moins le modèle est précis. <br>
+Cependant, on remarque que la précision sur le jeu de test ne diminue que très légèrement lorsque l'on réduit la taille du jeu d'entrainement. Cela suggère que le modèle est capable de généraliser assez bien même avec un nombre limité de données d'entrainement.
+
 ## Modèle choisi pour la suite : 
-On choisit le modèle GradientBoosting avec les hyperparamètre optimaux que l'on a récupéré avec la méthode GridSearch. 
+On choisit le modèle GradientBoosting avec les hyperparamètres optimaux que l'on a récupéré avec la méthode GridSearch. <br>
 C'est le modèle qui nous donne la meilleure précision sur le jeu de test quel que soit sa taille. C'est aussi le seul modèle supporté par LIME et SHAP sans traitement supplémentaire.
 
 ## Explicabilité : "permutation feature importance"
@@ -234,23 +237,28 @@ C'est le modèle qui nous donne la meilleure précision sur le jeu de test quel 
 |  RAC1P   |    0.003446     |    0.000703    |
 |          |                 |                |
 
-On remarque qu'à partir de la feature COW, l'importance des features devient très faible (diminue d'un facteur 10). Les features les plus importantes sont SCHL (niveau d'éducation) et WKHP (nombre d'heures travaillées par semaine), AGEP (âge de la personne) et RELP (relation familiale) on aussi un impact important. Cela est cohérent avec le fait que le niveau d'éducation et le nombre d'heures travaillées sont des facteurs déterminants du revenu annuel. L'âge peut aussi influencer le revenu, car les personnes plus âgées ont souvent plus d'expérience professionnelle et peuvent occuper des postes mieux rémunérés. La relation familiale peut aussi jouer un rôle, par exemple les personnes de référence peuvent avoir des revenus plus élevés que les autres membres du ménage.
+On remarque qu'à partir de la feature COW, l'importance des features devient très faible (diminue d'un facteur 10). Les features les plus importantes sont SCHL (niveau d'éducation) et WKHP (nombre d'heures travaillées par semaine), AGEP (âge de la personne) et RELP (relation familiale) on aussi un impact important. <br>
+Cela est cohérent avec le fait que le niveau d'éducation et le nombre d'heures travaillées sont des facteurs déterminants du revenu annuel. L'âge peut aussi influencer le revenu, car les personnes plus âgées ont souvent plus d'expérience professionnelle et peuvent donc occuper des postes mieux rémunérés. La relation familiale peut aussi jouer un rôle, par exemple les personnes de référence peuvent avoir des revenus plus élevés que les autres membres du ménage.
 
 ## Explicabilité : avec LIME et SHAP
 
 * Méthode LIME
   * Exemple(s) choisi(s) : 4932 (plot/lime/explanation_idx4932.png)
-  * Résultats
-                 feature    weight
-0    1.00 < RELP <= 2.00 -0.115436
-1           POBP <= 4.00  0.085403
-2            SEX <= 1.00  0.078005
-3  42.00 < AGEP <= 55.00  0.075710
-4  16.00 < SCHL <= 19.00 -0.073660
-5   1.00 < RAC1P <= 6.00 -0.040634
-6  32.00 < WKHP <= 40.00  0.039521
-7     1.00 < MAR <= 5.00 -0.037421
-8            COW <= 1.00 -0.018505
+  * Résultats : <br>
+
+|         | Feature |          |   Weight  |
+|---------|---------|----------|-----------|
+|  1.00 < |   RELP  | <= 2.00  | -0.115436 |
+|         |   POBP  | <= 4.00  |  0.085403 |
+|         |   SEX   | <= 1.00  |  0.078005 |
+| 42.00 < |   AGEP  | <= 55.00 |  0.075710 |
+| 16.00 < |   SCHL  | <= 19.00 | -0.073660 |
+|  1.00 < |   RAC1P | <= 6.00  | -0.040634 |
+| 32.00 < |   WKHP  | <= 40.00 |  0.039521 |
+|  1.00 < |   MAR   | <= 5.00  | -0.037421 |
+|         |   COW   | <= 1.00  | -0.018505 |
+|         |         |          |           |
+
   * Commentaires / analyses
 * Méthode SHAP
   * Exemple(s) choisi(s) : 4932 (plot/shap/waterfall_idx4932.png)
