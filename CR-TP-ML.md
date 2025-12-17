@@ -254,17 +254,23 @@ On remarque qu'à partir de la feature COW, l'importance des features devient tr
   * Commentaires / analyses
 * Méthode SHAP
   * Exemple(s) choisi(s) : 4932 (plot/shap/waterfall_idx4932.png)
-  * Résultats
-    RELP  -0.79
-    AGEP  +0.52
-    SCHL  -0.47
-    WKHP  +0.45
-    MAR   -0.23
-    POBP  +0.18
-    SEX   +0.17
-    RAC1P +0.06
-    COW   -0.06
-  * Commentaires / analyses
+  * Résultats : <br>
+
+  | Feature | Weight |
+  |---------|--------|
+  | RELP    | -0.79  |
+  | AGEP    | +0.52  |
+  | SCHL    | -0.47  |
+  | WKHP    | +0.45  |
+  | MAR     | -0.23  |
+  | POBP    | +0.18  |
+  | SEX     | +0.17  |
+  | RAC1P   | +0.06  |
+  | COW     | -0.06  |
+  |         |        |
+
+  * Commentaires / analyses : 
+   On remarque que les features les plus importantes selon SHAP sont RELP, AGEP, SCHL et WKHP. MAR, POBP et SEX ont une importance modérée, tandis que RAC1P et COW ont une importance faible.
 * Comparaison LIME et SHAP
 * Analyse summary-plot de SHAP
 
