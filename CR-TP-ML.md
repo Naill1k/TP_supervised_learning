@@ -234,7 +234,7 @@ Résultats / Commentaires / Analyses :
 |  RAC1P   |    0.003446     |    0.000703    |
 |          |                 |                |
 
-* Analyses :
+* Analyses : On remarque qu'à partir de la feature COW, l'importance des features devient très faible (diminue d'un facteur 10). Les features les plus importantes sont SCHL (niveau d'éducation) et WKHP (nombre d'heures travaillées par semaine), AGEP (âge de la personne) et RELP (relation familiale) on aussi un impact important. Cela est cohérent avec le fait que le niveau d'éducation et le nombre d'heures travaillées sont des facteurs déterminants du revenu annuel. L'âge peut aussi influencer le revenu, car les personnes plus âgées ont souvent plus d'expérience professionnelle et peuvent occuper des postes mieux rémunérés. La relation familiale peut aussi jouer un rôle, par exemple les personnes de référence peuvent avoir des revenus plus élevés que les autres membres du ménage.
 
 ## Explicabilité : avec LIME et SHAP
 
