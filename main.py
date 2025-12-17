@@ -424,22 +424,52 @@ if __name__ == "__main__":
 
     # 3.34 Explicabilité : contrefactuelle
 
-    example_row = df.iloc[27634].copy()
+    example_row = X_train.iloc[0].copy()
 
     print("Ligne 27634:")
     print(example_row)
 
+    example_row['SCHL'] = 3
+    example_row['AGEP'] = 25
+    example_row['WKHP'] = 40
+    example_row['COW'] = 2
+    example_row['POBP'] = 4
+    example_row['RELP'] = 12
+    example_row['MAR'] = 5
+    example_row['SEX'] = 2
+    example_row['RAC1P'] = 6
+
+
     example_row_modified = example_row.copy()
     example_row_modified['SCHL'] = 24
+    example_row_modified['AGEP'] = 50
+    example_row_modified['WKHP'] = 40
+    example_row_modified['COW'] = 2
+    example_row_modified['POBP'] = 4
+    example_row_modified['RELP'] = 12
+    example_row_modified['MAR'] = 5
+    example_row_modified['SEX'] = 2
+    example_row_modified['RAC1P'] = 6
+
+
 
     # Préparer la ligne modifiée pour la prédiction (extraire les features et appliquer le pré-traitement)
-    X_example = pd.DataFrame([example_row_modified]) 
+    X_example_modified = pd.DataFrame([example_row_modified]) 
+    X_example = pd.DataFrame([example_row])
 
     # Faire la prédiction
+    prediction = model.predict(X_example_modified)
+    prediction_proba = model.predict_proba(X_example_modified)
+
+    print(f"\nPrédiction: {prediction[0]}")
+    print(f"Probabilités: {prediction_proba[0]}")
+
     prediction = model.predict(X_example)
     prediction_proba = model.predict_proba(X_example)
 
     print(f"\nPrédiction: {prediction[0]}")
     print(f"Probabilités: {prediction_proba[0]}")
+
+
 
     
