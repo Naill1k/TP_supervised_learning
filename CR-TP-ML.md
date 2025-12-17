@@ -212,12 +212,25 @@ Résultats / Commentaires / Analyses :
 |-------------------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 
 ## Modèle choisi pour la suite : 
-* quel modèle : 
-* pourquoi ? 
+* quel modèle : On choisit le modèle GradientBoosting avec les hyperparamètre optimaux que l'on a récupéré avec la méthode GridSearch. 
+* C'est le modèle qui nous donne la meilleure précision sur le jeu de test quel que soit sa taille.
 
 ## Explicabilité : "permutation feature importance"
 
+* Explication de la méthode : pour chacune des colonnes, on mélange aléatoirement les valeurs des différentes lignes. On compare ensuite la précision obtenue avant et après mélange. Plus la précision diminue, plus la feature est importante, car utiliser la mauvaise valeur aura eu un gros impact sur la prédiction. Inversement, si utiliser une valeur aléatoire n'a que très peu d'impact sur la prédiction, cela signifie que la feature n'est pas importante.
+
 * Résultats obtenus : 
+  Feature  Importance Mean  Importance Std
+2    SCHL         0.088920        0.001626
+6    WKHP         0.080542        0.001388
+0    AGEP         0.041883        0.001552
+5    RELP         0.025041        0.001122
+1     COW         0.009148        0.000893
+7     SEX         0.008330        0.000915
+4    POBP         0.007689        0.000846
+3     MAR         0.003458        0.000656
+8   RAC1P         0.003446        0.000703
+
 * Analyses :
 
 ## Explicabilité : avec LIME et SHAP
