@@ -339,3 +339,12 @@ Résultats / Commentaires / Analyses :
     Probabilités: [0.27958153 0.72041847]
   
   Cette fois, la prédiction change bien pour indiquer un revenu supérieur à 50 000$. Cela illustre l'importance de considérer plusieurs facteurs ensemble pour influencer la prédiction du modèle.
+
+
+## Résultats de l'application de notre meilleur modèle sur le jeu de test supplémentaire
+
+  Accuracy of GradientBoostingClassifier on test set: 80.97% (MSE: 0.1903)
+  Predicted     0     1
+  Actual
+  0          2384   448
+  1           483  1576

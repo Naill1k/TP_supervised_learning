@@ -360,6 +360,9 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test = train_test_split(df_features, df_labels, test_size=0.2, random_state=42)
 
+    X_test = pd.read_csv('data_sup/features_split_4.csv', sep=',', encoding='utf-8', header=0)
+    y_test = pd.read_csv('data_sup/labels_split_4.csv', sep=',', encoding='utf-8', header=0)
+
     df = pd.concat([df_features, df_labels], axis=1)
 
     print("\nTraining dataset size :", X_train.shape[0])
@@ -418,57 +421,59 @@ if __name__ == "__main__":
 
     # evaluate_with_cross_validation(RandomForestClassifier(max_depth=14, min_samples_split=11, n_estimators=150), X_train, y_train, X_test, y_test)
     # evaluate_with_cross_validation(AdaBoostClassifier(estimator=DecisionTreeClassifier(max_depth=3), n_estimators=800, learning_rate=0.5), X_train, y_train, X_test, y_test)
-    model = evaluate_with_cross_validation(GradientBoostingClassifier(n_estimators=400, learning_rate=0.1, max_depth=4, min_samples_split=2, subsample=0.6), X_train, y_train, X_test, y_test)
+    evaluate_with_cross_validation(GradientBoostingClassifier(n_estimators=400, learning_rate=0.1, max_depth=4, min_samples_split=2, subsample=0.6), X_train, y_train, X_test, y_test)
+
+
 
     # explain(model, 10, X_train, X_test, y_train, y_test)
 
     # 3.34 Explicabilité : contrefactuelle
 
-    example_row = X_train.iloc[0].copy()
+    # example_row = X_train.iloc[0].copy()
 
-    print("Ligne 27634:")
-    print(example_row)
+    # print("Ligne 27634:")
+    # print(example_row)
 
-    example_row['SCHL'] = 3
-    example_row['AGEP'] = 25
-    example_row['WKHP'] = 40
-    example_row['COW'] = 2
-    example_row['POBP'] = 4
-    example_row['RELP'] = 12
-    example_row['MAR'] = 5
-    example_row['SEX'] = 2
-    example_row['RAC1P'] = 6
+    # example_row['SCHL'] = 3
+    # example_row['AGEP'] = 25
+    # example_row['WKHP'] = 40
+    # example_row['COW'] = 2
+    # example_row['POBP'] = 4
+    # example_row['RELP'] = 12
+    # example_row['MAR'] = 5
+    # example_row['SEX'] = 2
+    # example_row['RAC1P'] = 6
 
 
-    example_row_modified = example_row.copy()
-    example_row_modified['SCHL'] = 24
-    example_row_modified['AGEP'] = 50
-    example_row_modified['WKHP'] = 40
-    example_row_modified['COW'] = 2
-    example_row_modified['POBP'] = 4
-    example_row_modified['RELP'] = 12
-    example_row_modified['MAR'] = 5
-    example_row_modified['SEX'] = 2
-    example_row_modified['RAC1P'] = 6
+    # example_row_modified = example_row.copy()
+    # example_row_modified['SCHL'] = 24
+    # example_row_modified['AGEP'] = 50
+    # example_row_modified['WKHP'] = 40
+    # example_row_modified['COW'] = 2
+    # example_row_modified['POBP'] = 4
+    # example_row_modified['RELP'] = 12
+    # example_row_modified['MAR'] = 5
+    # example_row_modified['SEX'] = 2
+    # example_row_modified['RAC1P'] = 6
 
 
 
     # Préparer la ligne modifiée pour la prédiction (extraire les features et appliquer le pré-traitement)
-    X_example_modified = pd.DataFrame([example_row_modified]) 
-    X_example = pd.DataFrame([example_row])
+    # X_example_modified = pd.DataFrame([example_row_modified]) 
+    # X_example = pd.DataFrame([example_row])
 
     # Faire la prédiction
-    prediction = model.predict(X_example_modified)
-    prediction_proba = model.predict_proba(X_example_modified)
+    # prediction = model.predict(X_example_modified)
+    # prediction_proba = model.predict_proba(X_example_modified)
 
-    print(f"\nPrédiction: {prediction[0]}")
-    print(f"Probabilités: {prediction_proba[0]}")
+    # print(f"\nPrédiction: {prediction[0]}")
+    # print(f"Probabilités: {prediction_proba[0]}")
 
-    prediction = model.predict(X_example)
-    prediction_proba = model.predict_proba(X_example)
+    # prediction = model.predict(X_example)
+    # prediction_proba = model.predict_proba(X_example)
 
-    print(f"\nPrédiction: {prediction[0]}")
-    print(f"Probabilités: {prediction_proba[0]}")
+    # print(f"\nPrédiction: {prediction[0]}")
+    # print(f"Probabilités: {prediction_proba[0]}")
 
 
 
