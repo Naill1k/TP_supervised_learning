@@ -93,7 +93,6 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
 
   * Performance en test : 
     * Accuracy : **80,0%**
-    * Temps de calcul : **4578s (1h16)**
     * Matrice de Confusion : <br>
 
   |        | Predicted  |   0    |   1   |
@@ -138,7 +137,6 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
 
   * Performance en test : 
    * Accuracy : **79.84%**
-   * Temps de calcul : **4566s (1h16)**
    * Matrice de Confusion : <br>
 
   |        | Predicted  |   0    |   1   |
@@ -148,7 +146,8 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
   | 1      |            | 3381   | 10288 |
   |        |            |        |       |
 
-  On a effectué **600** fit ce qui nous a pris environ **1h16** et qui nous a permis de passer seulement de **79.23%** à **79.84%** malgré le temps d'entrainement. On a choisit de prendre des plages de valeurs assez larges pour nos hyperparamètres en profitant du fait que l'on en exploite que 3 sans prendre en compte trop de cas intermédiaires pour autant. Le temps d'exécution du GridSearch est quand même conséquent pour AdaBoost malgré le nombre d'entrainement.
+  On a effectué **600** fit ce qui nous a pris environ **1h16** et qui nous a permis de passer seulement de **79.23%** à **79.84%** malgré le temps d'entrainement. <br>
+  On a choisit de prendre des plages de valeurs assez larges pour nos hyperparamètres en profitant du fait que l'on en exploite que 3 sans prendre en compte trop de cas intermédiaires pour autant. Le temps d'exécution du GridSearch est quand même conséquent pour AdaBoost malgré le nombre d'entrainement.
 
 
 ### XGBOOST
@@ -186,7 +185,6 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
 
   * Performance en test : 
    * Accuracy : **80.06%**
-   * Temps de calcul : **1849s (30min)**
    * Matrice de Confusion : <br>
 
   |        | Predicted  |   0    |   1   |
@@ -197,7 +195,8 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
   |        |            |        |       |
 
 
-  On a effectué **1215** fit ce qui nous a pris environ **30min** et qui nous a permis de passer seulement de **79.79%** à **80.06%** malgré le temps d'entrainement. Nous avons choisit d'utiliser des plages de paramètres assez large pour pouvoir couvrir plusieurs cas mais en utilisant peu de valeurs intermédiaires pour accélérer l'exécution des entrainements en raison du nombre d'hyperparamètres utilisés.
+  On a effectué **1215** fit ce qui nous a pris environ **30min** et qui nous a permis de passer seulement de **79.79%** à **80.06%** malgré le temps d'entrainement. <br>
+  Nous avons choisit d'utiliser des plages de paramètres assez large pour pouvoir couvrir plusieurs cas mais en utilisant peu de valeurs intermédiaires pour accélérer l'exécution des entrainements en raison du nombre d'hyperparamètres utilisés.
 
 ## Expérimentation 3 : Comparaison des "meilleurs modèles
 
