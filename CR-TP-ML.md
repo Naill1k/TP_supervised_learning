@@ -38,20 +38,20 @@ Ces 9 features sont utilisées pour prédire si le label PINCP (correspondant au
 |  Evaluation en train | Random Forest |   XGBoost   |   Adaboost  |
 |----------------------|---------------|-------------|-------------|
 |  Accuracy            |     91.71%    |    79.96%   |    79.22%   |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 |  Temps calcul        |     13.97s    |    7.35s    |    3.24s    |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 |  Matrice confusion   |  72713   5805 | 65305 13213 | 65587 12931 |
 |                      |   5226  49308 | 13457 41077 | 14713 39821 |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 
 |  Evaluation en test  | Random Forest |   XGBoost   |   Adaboost  |
 |----------------------|---------------|-------------|-------------|
 |  Accuracy            |     77.71%    |    79.71%   |    79.23%   |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 |  Matrice confusion   |  16053  3541  | 16280  3314 | 16388  3206 |
 |                      |   3874  9795  |  3435 10234 |  3703  9966 |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 
 Nous pouvons constater que Random Forest a une très bonne performance en entrainement, mais une performance plus faible en test, ce qui montre un sur-apprentissage des données d'entraînement. En revanche, Gradient Boosting et Adaboost ont des précisions similaires en entrainement et en test, ce qui suggère que ces modèles parviennent à éviter ce problème et améliorent légèrement la précision sur le jeu de test. <br>
 Random Forest est aussi le modèle le plus lent à entrainer, suivi de XGBoost puis d'Adaboost, qui est le plus rapide. <br>
@@ -82,15 +82,27 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
     * Accuracy : **83,04%**
     * Temps de calcul : **4578s (1h16)**
     * Matrice de Confusion : <br>
-    `67009  11509` <br>
-    `11058  43476`
+
+  |        | Predicted  |   0    |   1   |
+  |--------|------------|--------|-------|
+  | Actual |            |        |       |
+  | 0      |            | 67009  | 11509 |
+  | 1      |            | 11058  | 43476 |
+  |        |            |        |       |
+
 
   * Performance en test : 
     * Accuracy : **80,0%**
     * Temps de calcul : **4578s (1h16)**
     * Matrice de Confusion : <br>
-    `16271  3323` <br>
-    ` 3329  10340`
+
+  |        | Predicted  |   0    |   1   |
+  |--------|------------|--------|-------|
+  | Actual |            |        |       |
+  | 0      |            | 16271  | 3323  |
+  | 1      |            | 3329   | 10340 |
+  |        |            |        |       |
+
 
   Nous avons testé avec GridSearch un très grand nombre de combinaisons d'hyperparamètres (**9075** fit réalisés en comptant la cross validation), ne sachant pas de quelle manière restreindre les plages de valeurs des hyperparamètres. Cette recherche a nécessité un temps de calcul conséquent (environ **1h16**) et n'a permi d'améliorer que légèrementles la précision, passant de **77,71%** à **80,0%**.
 
@@ -98,7 +110,8 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
 * Processus d'entrainement : 
   * Recherche des hyperparamètres
    * Listes des hyperparamètres testés et valeurs : 
-    * estimator: `[DecisionTreeClassifier(max_depth=1), DecisionTreeClassifier(max_depth=2), DecisionTreeClassifier(max_depth=3), DecisionTreeClassifier(max_depth=4)]`
+    * estimator: <br>
+    `[DecisionTreeClassifier(max_depth=1), DecisionTreeClassifier(max_depth=2), DecisionTreeClassifier(max_depth=3), DecisionTreeClassifier(max_depth=4)]`
     * n_estimators: `[50, 100, 200, 400, 800]`
     * learning_rate: `[0.005, 0.01, 0.05, 0.1, 0.5, 1.0]`
   * Nombre de plis pour la validation croisée : **5**
@@ -114,15 +127,26 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
    * Accuracy : **80.12%**
    * Temps de calcul : **4566s (1h16)**
    * Matrice de Confusion : <br>
-    `65285`  `13233` <br>
-    `13215`  `41319`
+
+  |        | Predicted  |   0    |   1   |
+  |--------|------------|--------|-------|
+  | Actual |            |        |       |
+  | 0      |            | 65285  | 13233 |
+  | 1      |            | 13215  | 41319 |
+  |        |            |        |       |
+
 
   * Performance en test : 
    * Accuracy : **79.84%**
    * Temps de calcul : **4566s (1h16)**
    * Matrice de Confusion : <br>
-    `16270`  `3324` <br>
-    `3381`  `10288`
+
+  |        | Predicted  |   0    |   1   |
+  |--------|------------|--------|-------|
+  | Actual |            |        |       |
+  | 0      |            | 16270  | 3324  |
+  | 1      |            | 3381   | 10288 |
+  |        |            |        |       |
 
   On a effectué **600** fit ce qui nous a pris environ **1h16** et qui nous a permis de passer seulement de **79.23%** à **79.84%** malgré le temps d'entrainement. On a choisit de prendre des plages de valeurs assez larges pour nos hyperparamètres en profitant du fait que l'on en exploite que 3 sans prendre en compte trop de cas intermédiaires pour autant. Le temps d'exécution du GridSearch est quand même conséquent pour AdaBoost malgré le nombre d'entrainement.
 
@@ -151,15 +175,27 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
    * Accuracy : **80.89%**
    * Temps de calcul : **1849s (30min)**
    * Matrice de Confusion : <br>
-    `65546`  `12972` <br>
-    `12453`  `42081`
+
+  |        | Predicted  |   0    |   1   |
+  |--------|------------|--------|-------|
+  | Actual |            |        |       |
+  | 0      |            | 65546  | 12972 |
+  | 1      |            | 12453  | 42081 |
+  |        |            |        |       |
+
 
   * Performance en test : 
    * Accuracy : **80.06%**
    * Temps de calcul : **1849s (30min)**
    * Matrice de Confusion : <br>
-    `16215`  `3379` <br>
-    `3254`  `10415`
+
+  |        | Predicted  |   0    |   1   |
+  |--------|------------|--------|-------|
+  | Actual |            |        |       |
+  | 0      |            | 16215  | 3379  |
+  | 1      |            | 3254   | 10415 |
+  |        |            |        |       |
+
 
   On a effectué **1215** fit ce qui nous a pris environ **30min** et qui nous a permis de passer seulement de **79.79%** à **80.06%** malgré le temps d'entrainement. Nous avons choisit d'utiliser des plages de paramètres assez large pour pouvoir couvrir plusieurs cas mais en utilisant peu de valeurs intermédiaires pour accélérer l'exécution des entrainements en raison du nombre d'hyperparamètres utilisés.
 
@@ -174,27 +210,25 @@ Par ailleurs, il y a environ le même nombre de faux positifs et de faux négati
 |  Evaluation en train | Random Forest |   XGBoost   |   Adaboost  |
 |----------------------|---------------|-------------|-------------|
 |  Accuracy            |     83.04%    |    80.89%   |    80.12%   |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 |  Temps calcul        |     4578s     |    1849s    |    4566s    |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 |  Matrice confusion   | 67009   11509 | 65546 12972 | 65285 13233 |
 |                      | 11058   43476 | 12453 42081 | 13215 41319 |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 
 |  Evaluation en test  | Random Forest |   XGBoost   |   Adaboost  |
 |----------------------|---------------|-------------|-------------|
 |  Accuracy            |     80.00%    |    80.06%   |    79.84%   |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 |  Matrice confusion   |  16271  3323  | 16215  3379 | 16270  3324 |
 |                      |  3329  10340  | 3254  10415 | 3381  10288 |
-|----------------------|---------------|-------------|-------------|
+|                      |               |             |             |
 
-* Commentaires et Analyse : 
+* Commentaires et Analyse : <br>
   On remarque que les 3 modèles ont un niveau d'accuracy très proche sur le jeu de test (seulement quelques dixièmes de pourcentage d'écart). On a une légère amélioration en comparaison au modèle entrainés avec les paramètres par défaut. Cependant le temps d'exécution nécessaire pour obtenir les hyperparamètres plus pertinent est très élevé. <br>
   On peut considérer dans notre cas que le Gradiet Boosting est le modèle avec la meilleure accuracy mais aussi celui qui a nécessité le moins de temps de calcul. On peut considérer que le temps de calcul pour obtenir le meilleur modèle de Random Forest n'est pas tout a fait pertienent à comparer aux 2 autres car on a fait beaucoup plus d'entrainements cependant le résultat en terme d'accuracy est du même ordre. De plus AdaBoost **600 fit** a été bien plus long à exécuter que le Gradient Boosting **1215** alors que l'on a doublé les nombre d'entrainements.
 
-## Expérimentation 4 : inférence sur un autre jeu de données (optionnel)
-Résultats / Commentaires / Analyses : 
 
 ## Expérimentation 5 : impact de la taille du jeu de données
 Résultats / Commentaires / Analyses : 
@@ -215,7 +249,7 @@ Comme attendu, moins il y a de données d'entrainement, moins le modèle est pr�
 Cependant, on remarque que la précision sur le jeu de test ne diminue que très légèrement lorsque l'on réduit la taille du jeu d'entrainement. Cela suggère que le modèle est capable de généraliser assez bien même avec un nombre limité de données d'entrainement.
 
 ## Modèle choisi pour la suite : 
-On choisit le modèle GradientBoosting avec les hyperparamètres optimaux que l'on a récupéré avec la méthode GridSearch. <br>
+On choisit le modèle **GradientBoosting** avec les hyperparamètres optimaux que l'on a récupéré avec la méthode GridSearch. <br>
 C'est le modèle qui nous donne la meilleure précision sur le jeu de test quel que soit sa taille. C'est aussi le seul modèle supporté par LIME et SHAP sans traitement supplémentaire.
 
 ## Explicabilité : "permutation feature importance"
@@ -243,7 +277,7 @@ Cela est cohérent avec le fait que le niveau d'éducation et le nombre d'heures
 ## Explicabilité : avec LIME et SHAP
 
 * Méthode LIME
-  * Exemple(s) choisi(s) : 4932 (plot/lime/explanation_idx4932.png)
+  * Exemple choisi : 4932 (plot/lime/explanation_idx4932.png)
   * Résultats : <br>
 
 |         | Feature |          |   Weight  |
@@ -261,7 +295,7 @@ Cela est cohérent avec le fait que le niveau d'éducation et le nombre d'heures
 
   * Commentaires / analyses
 * Méthode SHAP
-  * Exemple(s) choisi(s) : 4932 (plot/shap/waterfall_idx4932.png)
+  * Exemple choisi : 4932 (plot/shap/waterfall_idx4932.png)
   * Résultats : <br>
 
   | Feature | Weight |
@@ -304,7 +338,7 @@ Les features WKHP et SCHL, AGEP et RELP sont les plus importantes, tandis que le
 ## Explicabilité : contrefactuelle
 Résultats / Commentaires / Analyses : 
 
-  On fait un predict sur cet exemple : <br>
+  On exécute un predict sur l'exemple 27634 : <br>
   | Feature |    Value   |
   |---------|------------|
   | WKHP    |     40     |
@@ -318,33 +352,37 @@ Résultats / Commentaires / Analyses :
   | RAC1P   |     6      |
   |         |            |
 
-  On obtient les probabilités suivantes :
+  Et on obtient la prédiction suivante :
 
-    Prédiction: FALSE
-    Probabilités: 94%
+    Prédiction: FALSE à 94%
 
-  On change la valeur du champ **SCHL** de **3** à **24** (niveau d'éducation plus élevé) pour essayer de changer la prédiction.<br>
-  On obtient les probabilités suivantes :
+  On change la valeur du champ **SCHL** de **3** à **24** (niveau d'éducation plus élevé) pour essayer de changer la prédiction.
 
-    Prédiction: FALSE
-    Probabilités: 77%
+  On obtient la prédiction suivante :
+
+    Prédiction: FALSE à 77%
   
-  Malgré l'augmentation du niveau d'éducation, la prédiction reste inchangée (revenu inférieur à 50 000$). Cela suggère que l'impact d'un seul facteur peut ne pas être suffisant pour modifier la prédiction du modèle. D'autres facteurs, tels que l'âge, le nombre d'heures travaillées par semaine, et la relation familiale, peuvent également jouer un rôle crucial dans la détermination du revenu annuel. <br>
+  Malgré l'augmentation du niveau d'éducation, la prédiction reste inchangée (revenu inférieur à 50 000$). L'impact d'un seul facteur peut n'est pas suffisant pour modifier la prédiction du modèle. D'autres facteurs, tels que l'âge, le nombre d'heures travaillées par semaine ou la relation familiale, peuvent également jouer un rôle dans la détermination du revenu annuel.
 
-  Pour obtenir une prédiction différente, il serait nécessaire de modifier plusieurs facteurs simultanément, par exemple en augmentant le niveau d'éducation et l'age.<br>
-  On passe donc **AGEP** de **25** à **50** ans en plus de **SCHL** de **3** à **24**.<br>
-  On obtient les probabilités suivantes :
+  Pour obtenir une prédiction différente, il est donc nécessaire de modifier plusieurs facteurs simultanément, par exemple en augmentant le niveau d'éducation et l'âge.<br>
+  On passe donc **AGEP** de **25** à **50** ans en plus de **SCHL** de **3** à **24**.
 
-    Prédiction: TRUE
-    Probabilités: 72%
+  On obtient la prédiction suivante :
+
+    Prédiction: TRUE à 72%
   
-  Cette fois, la prédiction change bien pour indiquer un revenu supérieur à 50 000$. Cela illustre l'importance de considérer plusieurs facteurs ensemble pour influencer la prédiction du modèle.
+  Cette fois, la prédiction change bien pour indiquer un revenu supérieur à 50 000$. Cela montre l'importance de modifier plusieurs facteurs ensemble pour influencer la prédiction du modèle.
 
 
 ## Résultats de l'application de notre meilleur modèle sur le jeu de test supplémentaire
 
-  Accuracy of GradientBoostingClassifier on test set: 80.97% (MSE: 0.1903)
-  Predicted     0     1
-  Actual
-  0          2384   448
-  1           483  1576
+  Accuracy of GradientBoostingClassifier on test set: 80.97% (MSE: 0.1903) <br>
+
+  |        | Predicted  |   0  |   1  |
+  |--------|------------|------|------|
+  | Actual |            |      |      |
+  | 0      |            | 2384 | 448  |
+  | 1      |            | 483  | 1576 |
+  |        |            |      |      |
+
+  Le score d'accuracy sur ce jeu de test supplémentaire est de 80.97%, ce qui est très proche des performances observées sur le jeu de test initial (80.06%). <br>
